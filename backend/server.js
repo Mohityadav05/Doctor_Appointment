@@ -10,8 +10,15 @@ app.use(cors());
 app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error(err));
+  .then(() => console.log('✅ MongoDB connected successfully'))
+  .catch(err => {
+    console.error('❌ MongoDB Connection Error:', err.message);
+    if (process.env.MONGO_URI) {
+      console.log('Using URI starting with:', process.env.MONGO_URI.substring(0, 15) + '...');
+    } else {
+      console.log('MONGO_URI is undefined! Check Vercel Environment Variables.');
+    }
+  });
 // Default route for Vercel
 app.get('/', (req, res) => {
   res.send('Doctor Appointment API is running!');
