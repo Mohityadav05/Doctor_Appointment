@@ -9,16 +9,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Enable Mongoose debugging
-mongoose.set('debug', true);
-
-console.log('--- MongoDB Connection Attempt ---');
-if (!process.env.MONGO_URI) {
-  console.error('❌ CRITICAL: MONGO_URI is NOT defined in Environment Variables!');
-} else {
-  console.log('URI found, attempting connection...');
-}
-
 // Database Connection
 const connectDB = async () => {
   if (mongoose.connection.readyState >= 1) return;
