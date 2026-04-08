@@ -9,6 +9,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Enable Mongoose debugging
+mongoose.set('debug', true);
+
 console.log('--- MongoDB Connection Attempt ---');
 if (!process.env.MONGO_URI) {
   console.error('❌ CRITICAL: MONGO_URI is NOT defined in Environment Variables!');
@@ -16,10 +19,13 @@ if (!process.env.MONGO_URI) {
   console.log('URI found, attempting connection...');
 }
 
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI, {
+  serverSelectionTimeoutMS: 5000, // Fail after 5 seconds instead of hanging
+})
   .then(() => console.log('✅ MongoDB connected successfully'))
   .catch(err => {
     console.error('❌ MongoDB Connection Error:', err.message);
+    console.log('Error Code:', err.code);
     if (process.env.MONGO_URI) {
       console.log('Using URI starting with:', process.env.MONGO_URI.substring(0, 15) + '...');
     }
