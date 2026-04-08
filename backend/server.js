@@ -19,36 +19,19 @@ if (!process.env.MONGO_URI) {
   console.log('URI found, attempting connection...');
 }
 
-mongoose.connect(process.env.MONGO_URI, {
-  serverSelectionTimeoutMS: 5000, // Fail after 5 seconds instead of hanging
-})
-  .then(() => console.log('✅ MongoDB connected successfully'))
-  .catch(err => {
-    console.error('❌ MongoDB Connection Error:', err.message);
-    console.log('Error Code:', err.code);
-    if (process.env.MONGO_URI) {
-      console.log('Using URI starting with:', process.env.MONGO_URI.substring(0, 15) + '...');
-    }
-  });
-
-// Diagnostic Route
-app.get('/api/test-db', async (req, res) => {
+// Database Connection
+const connectDB = async () => {
+  if (mongoose.connection.readyState >= 1) return;
   try {
-    if (mongoose.connection.readyState === 1) {
-      return res.json({ status: 'success', message: 'Already connected to MongoDB!' });
-    }
-    
-    await mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 5000 });
-    res.json({ status: 'success', message: 'Dynamically connected to MongoDB!' });
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('✅ MongoDB Connected');
   } catch (err) {
-    res.status(500).json({ 
-      status: 'error', 
-      message: err.message,
-      code: err.code,
-      uri_preview: process.env.MONGO_URI ? process.env.MONGO_URI.substring(0, 20) + '...' : 'UNDEFINED'
-    });
+    console.error('❌ MongoDB Connection Error:', err.message);
   }
-});
+};
+
+// Connect to DB immediately on start
+connectDB();
 
 // Default route for Vercel
 app.get('/', (req, res) => {
@@ -56,6 +39,12 @@ app.get('/', (req, res) => {
 });
 
 // Routes
+// Middleware to ensure DB is connected for all API routes
+app.use(async (req, res, next) => {
+  await connectDB();
+  next();
+});
+
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/doctors', require('./routes/doctors'));
 app.use('/api/patients', require('./routes/patients'));
