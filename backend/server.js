@@ -9,14 +9,19 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+console.log('--- MongoDB Connection Attempt ---');
+if (!process.env.MONGO_URI) {
+  console.error('❌ CRITICAL: MONGO_URI is NOT defined in Environment Variables!');
+} else {
+  console.log('URI found, attempting connection...');
+}
+
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connected successfully'))
   .catch(err => {
     console.error('❌ MongoDB Connection Error:', err.message);
     if (process.env.MONGO_URI) {
       console.log('Using URI starting with:', process.env.MONGO_URI.substring(0, 15) + '...');
-    } else {
-      console.log('MONGO_URI is undefined! Check Vercel Environment Variables.');
     }
   });
 // Default route for Vercel
