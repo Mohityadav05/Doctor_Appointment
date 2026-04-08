@@ -30,6 +30,26 @@ mongoose.connect(process.env.MONGO_URI, {
       console.log('Using URI starting with:', process.env.MONGO_URI.substring(0, 15) + '...');
     }
   });
+
+// Diagnostic Route
+app.get('/api/test-db', async (req, res) => {
+  try {
+    if (mongoose.connection.readyState === 1) {
+      return res.json({ status: 'success', message: 'Already connected to MongoDB!' });
+    }
+    
+    await mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 5000 });
+    res.json({ status: 'success', message: 'Dynamically connected to MongoDB!' });
+  } catch (err) {
+    res.status(500).json({ 
+      status: 'error', 
+      message: err.message,
+      code: err.code,
+      uri_preview: process.env.MONGO_URI ? process.env.MONGO_URI.substring(0, 20) + '...' : 'UNDEFINED'
+    });
+  }
+});
+
 // Default route for Vercel
 app.get('/', (req, res) => {
   res.send('Doctor Appointment API is running!');
